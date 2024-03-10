@@ -1,5 +1,9 @@
 # Mars Perseverance Rover Model
 
+![Perseverance_rover_pillars](https://github.com/elikem1z/Nasa-Rover/assets/109632084/43e9f2f6-01f5-420d-8964-1eb871936d51)
+
+[Image reference](https://www.esa.int/ESA_Multimedia/Images/2020/04/Perseverance_rover)
+
 ## Project Overview
 
 This repository contains the Arduino code for a model of the NASA Mars Perseverance Rover, designed and built as a school project. The rover model is capable of autonomous movement, obstacle detection, and environmental interaction, showcasing a simplified version of the technology used in the actual Mars rover.

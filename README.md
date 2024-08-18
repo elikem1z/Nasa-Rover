@@ -1,8 +1,8 @@
 # Mars Perseverance Rover Model
 
-![Perseverance_rover_pillars](https://github.com/elikem1z/Nasa-Rover/assets/109632084/43e9f2f6-01f5-420d-8964-1eb871936d51)
+![Mnin rover](https://github.com/ShadrackAgyei/Model-NASA-mini-rover/blob/main/Assets/perseverance.jpg)
 
-[Image reference](https://www.esa.int/ESA_Multimedia/Images/2020/04/Perseverance_rover)
+[Image reference](https://www.montgomeryadvertiser.com/story/news/2021/02/18/interactivestory-experienceid-mars/6746679002/)
 
 ## Project Overview
 
@@ -41,6 +41,11 @@ The project was inspired by NASA's Mars 2020 Perseverance rover mission, aiming 
 - Bluetooth Module (HC-05/HC-06)
 - SD Card Module for data storage
 - Digital Camera Module (VC0706-based)
+
+## Photos
+![Photos](https://github.com/ShadrackAgyei/Model-NASA-mini-rover/blob/main/Assets/electronic%20simulations.png) ![Photos](https://github.com/ShadrackAgyei/Model-NASA-mini-rover/blob/main/Assets/pcb%20design.png) 
+
+View more here: [Assets](https://github.com/ShadrackAgyei/Model-NASA-mini-rover/tree/main/Assets)
 
 ## Installation
 

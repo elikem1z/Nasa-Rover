@@ -1,270 +1,247 @@
+#include <LiquidCrystal_I2C.h>
+
 #include <Wire.h>
-#include <LiquidCrystal_I2C.h>  // Include libraries for LCD display
-LiquidCrystal_I2C lcd(0x27, 16, 2);  // Initialize LCD with I2C address
-#define LDRpin A0  // Define a pin for the Light Dependent Resistor (LDR)
-#include <SoftwareSerial.h>
-#include <Adafruit_VC0706.h>
-#include <SD.h>
-#include <SPI.h>
-int state = 0;  // Initialize a variable 'state' for robot state
-#include <HCSR04.h>
 
-// Motor control pins
-int IN1 = 2;
-int IN2 = 3;
-int IN3 = 4;
-int IN4 = 5;
-int IN2_1 = 6;
-int IN2_2 = 7;
-int IN2_3 = 8;
-int IN2_4 = 9;
+LiquidCrystal_I2C lcd (0x27,20,2);
 
-// Ultrasonic sensor connections
-const int trig = 10;
-const int echo = 11;
-long duration;
-int distance;
 
-// Sharp sensor connections
-int vo = A2;
 
-// Sharp connections
-int ldrPin = 3;
+//DECLARATON OF VARIABLES
 
-// Function prototypes
-void motorstop();
-void motorforward();
-void motorbackward();
-void motorTurnRight();
-void motorTurnLeft();
-void auto_mode();
-void ultra();
-void sharp();
-void lcdRead();
-void ldr();
-void blt();
-int LDRValue = 0;
-SoftwareSerial bt(0, 1);
-SoftwareSerial cameraconnecction(2, 3);
+int trig = 9; 
+int echo = 10; 
+
+int front_leftIN1 = 2; 
+int front_leftIN2 = 3; 
+int front_rightIN1 = 4; 
+int front_rightIN2 = 5; 
+int back_leftIN1 = 6; 
+int back_leftIN2 = 7;
+int back_rightIN1 = 8; 
+int back_rightIN2 = 9; 
+
+int ldr = A0;
+int ldrstatus;
+int leds = A2;
+
+int duration, distance;
+
+char command;
+
+
 
 void setup() {
-  Serial.begin(9600);  // Initialize serial communication
+  Serial.begin(9600);
   
-  // Motor control pins setup
-  pinMode(IN1, OUTPUT);
-  pinMode(IN2, OUTPUT);
-  pinMode(IN3, OUTPUT);
-  pinMode(IN4, OUTPUT);
-  pinMode(IN2_1, OUTPUT);
-  pinMode(IN2_2, OUTPUT);
-  pinMode(IN2_3, OUTPUT);
-  pinMode(IN2_4, OUTPUT);
-  
-  // Ultrasonic Sensor control pins setup
   pinMode(trig, OUTPUT);
   pinMode(echo, INPUT);
   
-  // Sharp sensor control pin setup
-  pinMode(vo, OUTPUT);
-  
-  // LCD control pin setup
-  lcd.begin(16, 2);
+  pinMode(front_leftIN1, OUTPUT);
+  pinMode(front_leftIN2, OUTPUT);
+  pinMode(front_rightIN1, OUTPUT);
+  pinMode(front_rightIN2, OUTPUT);
+  pinMode(back_leftIN1, OUTPUT);
+  pinMode(back_leftIN2, OUTPUT);
+  pinMode(back_rightIN1, OUTPUT);
+  pinMode(back_rightIN2, OUTPUT);
+
+  pinMode(ldr, INPUT);
+  pinMode(leds, OUTPUT);
+
+  lcd.init();           // initialize the lcd 
+  lcd.init();
+  // Print a message to the LCD.
   lcd.backlight();
-  lcd.clear();
-  lcd.setCursor(0, 0);
-  lcd.print("Robot ready ");
-  lcd.setCursor(0, 1);
-  lcd.print("to operate.");
-  delay(1000);
+  lcd.setCursor(0,0);
+  lcd.print("Team4 Robot");  
 }
+
+
+
 
 void loop() {
-  if (Serial.available()) {
-    state = Serial.read();  // Read a character from serial communication
+
+lights();                  //calling the function for switching on the lights
+ 
+//ULTRASONIC SENSOR
+
+digitalWrite(trig, LOW);
+delayMicroseconds(2);
+digitalWrite(trig, HIGH);
+delayMicroseconds(10);
+digitalWrite(trig, LOW);
+duration = pulseIn(echo, HIGH);
+ distance = (duration/2) * 0.0343;
+
+ 
+// BLUETOOTH 
+while (Serial.available () ) {
+
+    command = Serial.read ();    
   }
+        if (command == 'F') {
+         move_forward();
+       
+      }
+ 
+      else if (command == 'B') {
+          move_backward();
+      
+      }
+            
+       else if (command == 'R') {
+            move_right();
+      
+      }
+       else if (command == 'L') {
+            move_left();
+      
+      }
+      else if (command == 'S') {
+            stop_motion();
+      }
+      else if (command == 'Q') {
+        auto_mode();
+      }
+    
+ }
 
-  // Check the state and perform corresponding actions
-  switch (state) {
-    case '0':
-      // Stop the robot and perform other actions for state '0'
-      break;
-    case '1':
-      // Move the robot forward for state '1'
-      break;
-    case '2':
-      // Turn the robot right for state '2'
-      break;
-    case '3':
-      // Turn the robot left for state '3'
-      break;
-    case '4':
-      // Move the robot backward for state '4'
-      break;
-    case '5':
-      // Stop the robot for state '5'
-      break;
-    case '6':
-      // Stop the robot, measure distance, and perform other actions for state '6'
-      break;
-    case '7':
-      // Activate autonomous mode for state '7'
-      break;
-    default:
-      // Handle unknown state or other cases
-      break;
+
+
+//FUNCTION FOR TURNING THE LIGHTS ON
+void lights () {
+  ldrstatus = analogRead(ldr);
+  if (ldrstatus > 800) {
+    digitalWrite(leds, HIGH);
+    Serial.println("Lights are on");
+  }
+  else {
+    digitalWrite(leds, LOW);
+    Serial.println("Lights are off");
   }
 }
 
-// Function to stop the motors
-void motorstop() {
-  // Turn off all motor control pins
-  digitalWrite(IN1, LOW);
-  digitalWrite(IN2, LOW);
-  digitalWrite(IN3, LOW);
-  digitalWrite(IN4, LOW);
-  digitalWrite(IN2_1, LOW);
-  digitalWrite(IN2_2, LOW);
-  digitalWrite(IN2_3, LOW);
-  digitalWrite(IN2_4, LOW);
-}
 
-// Function to move the robot forward
-void motorforward() {
-  // Set motor control pins for forward motion
-  digitalWrite(IN1, HIGH);
-  digitalWrite(IN2, LOW);
-  digitalWrite(IN3, HIGH);
-  digitalWrite(IN4, LOW);
-  digitalWrite(IN2_1, HIGH);
-  digitalWrite(IN2_2, LOW);
-  digitalWrite(IN2_3, HIGH);
-  digitalWrite(IN2_4, LOW);
-}
-
-// Function to turn the robot right
-void motorTurnRight() {
-  // Set motor control pins for right turn
-  digitalWrite(IN1, HIGH);
-  digitalWrite(IN2, LOW);
-  digitalWrite(IN3, HIGH);
-  digitalWrite(IN4, LOW);
-  digitalWrite(IN2_1, LOW);
-  digitalWrite(IN2_2, LOW);
-  digitalWrite(IN2_3, HIGH);
-  digitalWrite(IN2_4, HIGH);
-  delay(250);  // Delay for a right turn
-}
-
-// Function to turn the robot left
-void motorTurnLeft() {
-  // Set motor control pins for left turn
-  digitalWrite(IN1, LOW);
-  digitalWrite(IN2, LOW);
-  digitalWrite(IN3, HIGH);
-  digitalWrite(IN4, HIGH);
-  digitalWrite(IN2_1, HIGH);
-  digitalWrite(IN2_2, LOW);
-  digitalWrite(IN2_3, HIGH);
-  digitalWrite(IN2_4, LOW);
-  delay(250);  // Delay for a left turn
-}
-
-// Function to perform autonomous mode
+//FUNCTION FOR THE AUTOMATIC MODE
 void auto_mode() {
-  // Implement autonomous mode logic here
-  // For example, obstacle avoidance
-}
-
-// Function to measure distance using ultrasonic sensor
-void ultra() {
-  // Clears the trigPin
-  lcd.clear();
-  lcd.setCursor(0, 0);
-  lcd.print("Measuring ");
-  lcd.setCursor(0, 1);
-  lcd.print("distance... ");
+  if (distance < 50) {
+ 
+  stop_motion();
+  delay (500);
+  move_left();
   delay(1000);
-  digitalWrite(trig, LOW);
-  delayMicroseconds(2);
-  // Sets the trigPin on HIGH state for 10 microseconds
-  digitalWrite(trig, HIGH);
-  delayMicroseconds(10);
-  digitalWrite(trig, LOW);
-  // Reads the echoPin, returns the sound wave travel time in microseconds
-  duration = pulseIn(echo, HIGH);
-  // Calculating the distance in centimeters
-  distance = (duration * 0.034 / 2);
-  // Display the distance on the LCD
-  lcd.clear();
-  lcd.setCursor(0, 0);
-  lcd.print("Distance:");
-  lcd.setCursor(10, 0);
-  lcd.print(distance);
-  lcd.setCursor(12, 0);
-  lcd.print("cm");
+  move_right();
   delay(2000);
+ }
+ 
+ else {
+  move_forward();
+ }
+ 
 }
 
-// Function to handle Sharp sensor
-void sharp() {
-  // Implement Sharp sensor logic here
+
+
+//FUNCTION FOR THE MOVEMENT OF THE ROBOT
+
+void move_forward() {
+  // all the wheels are moving  forward
+  delay(10);
+  digitalWrite(front_leftIN1, HIGH);
+  digitalWrite(front_leftIN2, LOW);
+  digitalWrite(front_rightIN1, HIGH);
+  digitalWrite(front_rightIN2, LOW);
+  
+  digitalWrite(back_leftIN1, HIGH);
+  digitalWrite(back_leftIN2, LOW);
+  digitalWrite(back_rightIN1, HIGH);
+  digitalWrite(back_rightIN2, LOW);
+
+  lcd.clear();
+  lcd.setCursor(0,1);
+  lcd.println("Moving forward"); 
+  
 }
 
-// Function to read data from the LCD
-void lcdRead() {
-  // Read data from the LCD
+
+void move_backward() {
+  // wheels are moving in an anticlockwise direction
+  delay(10);   
+  digitalWrite(front_leftIN1, LOW);
+  digitalWrite(front_leftIN2, HIGH);
+  digitalWrite(front_rightIN1, LOW);
+  digitalWrite(front_rightIN2, HIGH);
+  
+  digitalWrite(back_leftIN1, LOW);
+  digitalWrite(back_leftIN2, HIGH);
+  digitalWrite(back_rightIN1, LOW);
+  digitalWrite(back_rightIN2, HIGH);
+
+  lcd.clear();
+  lcd.setCursor(0,1);
+  lcd.println("Moving backward");
+ 
 }
 
-// Function to handle LDR (Light Dependent Resistor)
-void ldr() {
-  // Read LDR sensor data and perform actions
+
+void move_right() {
+   // right wheels stop and left wheels move
+  delay(10);
+  digitalWrite(front_leftIN1, HIGH);
+  digitalWrite(front_leftIN2, LOW);
+  digitalWrite(front_rightIN1, LOW);
+  digitalWrite(front_rightIN2, LOW);
+  
+  digitalWrite(back_leftIN1, HIGH);
+  digitalWrite(back_leftIN2, LOW);
+  digitalWrite(back_rightIN1, LOW);
+  digitalWrite(back_rightIN2, LOW); 
+
+  lcd.clear();
+  lcd.setCursor(0,1);
+  lcd.println("Moving right");
+
+  
 }
 
-// Function to handle Bluetooth communication
-void blt() {
-  // Read and write data over Bluetooth
+
+void move_left() {
+   // left wheels stop and right wheels move
+   delay(10);
+  digitalWrite(front_leftIN1, LOW);
+  digitalWrite(front_leftIN2, LOW);
+  digitalWrite(front_rightIN1, HIGH);
+  digitalWrite(front_rightIN2, LOW);
+  
+  digitalWrite(back_leftIN1, LOW);
+  digitalWrite(back_leftIN2, LOW);
+  digitalWrite(back_rightIN1, HIGH);
+  digitalWrite(back_rightIN2, LOW);
+
+  lcd.clear();
+  lcd.setCursor(0,1);
+  lcd.println("Moving left");
+
+  
+  
 }
 
-// Function to move the robot backward
-void motorbackward() {
-  // Set motor control pins for backward motion
-}
+void stop_motion() {
 
-// Main program loop
-void loop() {
-  if (Serial.available()) {
-    state = Serial.read();  // Read a character from serial communication
-  }
+     delay(10);
+  digitalWrite(front_leftIN1, LOW);
+  digitalWrite(front_leftIN2, LOW);
+  digitalWrite(front_rightIN1, LOW);
+  digitalWrite(front_rightIN2, LOW);
+  
+  digitalWrite(back_leftIN1, LOW);
+  digitalWrite(back_leftIN2, LOW);
+  digitalWrite(back_rightIN1, LOW);
+  digitalWrite(back_rightIN2, LOW);
 
-  // Check the state and perform corresponding actions
-  switch (state) {
-    case '0':
-      motorstop();  // Stop the robot
-      break;
-    case '1':
-      motorforward();  // Move the robot forward
-      break;
-    case '2':
-      motorTurnRight();  // Turn the robot right
-      break;
-    case '3':
-      motorTurnLeft();  // Turn the robot left
-      break;
-    case '4':
-      motorbackward();  // Move the robot backward
-      break;
-    case '5':
-      motorstop();  // Stop the robot
-      break;
-    case '6':
-      motorstop();
-      ultra();  // Measure distance using the ultrasonic sensor
-      break;
-    case '7':
-      auto_mode();  // Activate autonomous mode
-      break;
-    default:
-      // Handle unknown state or other cases
-      break;
-  }
+  lcd.clear();
+  lcd.setCursor(0,1);
+  lcd.println("Robot stopped");
+
+  
 }
